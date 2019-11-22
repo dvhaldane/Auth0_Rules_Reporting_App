@@ -1,0 +1,40 @@
+﻿@model IEnumerable<SampleMvcApp.Models.ReportItem>
+@using NonFactors.Mvc.Grid;
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+
+    ViewData["Title"] = "Home";
+}
+
+<link href="~/css/mvc-grid/mvc-grid.css" rel="stylesheet">
+<script src="~/js/mvc-grid/mvc-grid.js"></script>
+<script type="text/javascript">
+    document.addEventListener('rowclick', function (e) {
+        console.log('data: ', e.detail.data);
+        console.log('grid: ', e.detail.grid);
+        console.log('original event: ', e.detail.originalEvent);
+        console.log("@Configuration.GetSection("Auth0")["Region"]")
+        console.log("@Configuration.GetSection("Auth0")["Domain"]")
+        window.open("https://manage.auth0.com/dashboard/@Configuration.GetSection("Auth0")["Region"]/@Configuration.GetSection("Auth0")["Domain"]/rules/" + e.detail.data["rule-i-d"], '_blank');
+
+    });
+</script>
+<div id="grid">
+    @(Html
+        .Grid(Model)
+        .Build(columns =>
+        {
+            columns.Add(model => model.ClientName).Titled("Client Name");
+            columns.Add(model => model.ClientID).Titled("ClientID");
+            columns.Add(model => model.RuleName).Titled("Rule Name");
+            columns.Add(model => model.RuleScript).Titled("Rule Script");
+            columns.Add(model => model.RuleID);
+        })
+        .Empty("No data available.")
+
+        .Filterable()
+        .Sortable()
+        .Pageable()
+    )
+</div>
