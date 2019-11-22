@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -100,16 +101,23 @@ namespace SampleMvcApp
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            app.UseExceptionHandler(errorApp =>
             {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
-            }
+                errorApp.Run(async context =>
+                {            
+                    var exceptionHandlerPathFeature =
+                        context.Features.Get<IExceptionHandlerPathFeature>();
 
+                    if (exceptionHandlerPathFeature?.Error != null)
+                    {
+                        if (exceptionHandlerPathFeature.Error.InnerException.Message.Contains("Access denied"))
+                        {
+                            context.Response.Redirect("/Account/AccessDenied");
+                        }
+                    }
+                });
+            });
+            app.UseHsts();
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
